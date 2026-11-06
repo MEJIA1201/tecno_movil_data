@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -18,6 +19,7 @@ public class TransporteService {
 
     // a) Afluencia por estacion: cuantos usuarios ingresan a cada estacion
     public static Map<String, Long> afluenciaPorEstacion(List<Registro> registros) {
+        Objects.requireNonNull(registros, "La lista de registros no puede ser nula");
         return registros.stream()
                 .filter(r -> r.getAccion().equals("entrada"))
                 .collect(Collectors.groupingBy(Registro::getEstacion, Collectors.counting()));
@@ -25,6 +27,7 @@ public class TransporteService {
 
     // Misma tarea a) pero con parallelStream() para comprobar que se puede paralelizar
     public static Map<String, Long> afluenciaPorEstacionParalelo(List<Registro> registros) {
+        Objects.requireNonNull(registros, "La lista de registros no puede ser nula");
         return registros.parallelStream()
                 .filter(r -> r.getAccion().equals("entrada"))
                 .collect(Collectors.groupingBy(Registro::getEstacion, Collectors.counting()));
@@ -32,6 +35,7 @@ public class TransporteService {
 
     // b) Horas pico: agrupar por hora del dia y contar el flujo
     public static Map<Integer, Long> flujoPorHora(List<Registro> registros) {
+        Objects.requireNonNull(registros, "La lista de registros no puede ser nula");
         return registros.stream()
                 .collect(Collectors.groupingBy(r -> r.getTimestamp().getHour(),
                         Collectors.counting()));
@@ -39,6 +43,10 @@ public class TransporteService {
 
     // Toma el mapa de flujo por hora y devuelve las N horas con mas flujo
     public static List<Map.Entry<Integer, Long>> horasPico(Map<Integer, Long> flujo, int n) {
+        Objects.requireNonNull(flujo, "El mapa de flujo no puede ser nulo");
+        if (flujo.isEmpty()) {
+            return List.of();
+        }
         return flujo.entrySet().stream()
                 .sorted(Map.Entry.<Integer, Long>comparingByValue().reversed())
                 .limit(n)
@@ -47,12 +55,17 @@ public class TransporteService {
 
     // c) Rutas mas utilizadas: contar registros por ruta
     public static Map<String, Long> usoPorRuta(List<Registro> registros) {
+        Objects.requireNonNull(registros, "La lista de registros no puede ser nula");
         return registros.stream()
                 .collect(Collectors.groupingBy(Registro::getRuta, Collectors.counting()));
     }
 
     // Ordena las rutas de mayor a menor uso
     public static List<Map.Entry<String, Long>> rutasMasUsadas(Map<String, Long> uso) {
+        Objects.requireNonNull(uso, "El mapa de uso no puede ser nulo");
+        if (uso.isEmpty()) {
+            return List.of();
+        }
         return uso.entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
                 .collect(Collectors.toUnmodifiableList());
@@ -60,6 +73,7 @@ public class TransporteService {
 
     // d) Patrones de viaje: para cada usuario, lista de estaciones en orden de aparicion
     public static Map<Integer, List<String>> patronesPorUsuario(List<Registro> registros) {
+        Objects.requireNonNull(registros, "La lista de registros no puede ser nula");
         return registros.stream()
                 .collect(Collectors.groupingBy(Registro::getIdUsuario,
                         Collectors.mapping(Registro::getEstacion,
@@ -70,6 +84,12 @@ public class TransporteService {
     // Para cada usuario se ordenan sus registros por hora y se toman parejas
     // seguidas (registro i y registro i+1). La clave es "EstacionA -> EstacionB".
     public static Map<String, Double> tiempoPromedioEntreEstaciones(List<Registro> registros) {
+        Objects.requireNonNull(registros, "La lista de registros no puede ser nula");
+        
+        if (registros.isEmpty()) {
+            return Map.of();
+        }
+        
         Map<Integer, List<Registro>> porUsuario = registros.stream()
                 .collect(Collectors.groupingBy(Registro::getIdUsuario));
 
@@ -93,6 +113,12 @@ public class TransporteService {
 
     // f) Sobrecarga: rutas cuyo numero de entradas supera el umbral -> "critica"
     public static Map<String, String> estadoPorRuta(List<Registro> registros, long umbral) {
+        Objects.requireNonNull(registros, "La lista de registros no puede ser nula");
+        
+        if (registros.isEmpty()) {
+            return Map.of();
+        }
+        
         return registros.stream()
                 .filter(r -> r.getAccion().equals("entrada"))
                 .collect(Collectors.groupingBy(Registro::getRuta, Collectors.counting()))
