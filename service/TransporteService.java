@@ -14,12 +14,20 @@ import models.Registro;
  * 3.2 Tareas del caso de estudio.
  * Todas son funciones puras: no modifican la lista original ni ninguna
  * variable externa, solo reciben datos y devuelven un resultado.
+ * 
+ * Los métodos devuelven colecciones inmutables vacías en lugar de lanzar
+ * excepciones cuando no hay datos válidos para procesar.
  */
 public class TransporteService {
 
     // a) Afluencia por estacion: cuantos usuarios ingresan a cada estacion
     public static Map<String, Long> afluenciaPorEstacion(List<Registro> registros) {
         Objects.requireNonNull(registros, "La lista de registros no puede ser nula");
+        
+        if (registros.isEmpty()) {
+            return Map.of();
+        }
+        
         return registros.stream()
                 .filter(r -> r.getAccion().equals("entrada"))
                 .collect(Collectors.groupingBy(Registro::getEstacion, Collectors.counting()));
@@ -28,6 +36,11 @@ public class TransporteService {
     // Misma tarea a) pero con parallelStream() para comprobar que se puede paralelizar
     public static Map<String, Long> afluenciaPorEstacionParalelo(List<Registro> registros) {
         Objects.requireNonNull(registros, "La lista de registros no puede ser nula");
+        
+        if (registros.isEmpty()) {
+            return Map.of();
+        }
+        
         return registros.parallelStream()
                 .filter(r -> r.getAccion().equals("entrada"))
                 .collect(Collectors.groupingBy(Registro::getEstacion, Collectors.counting()));
@@ -36,6 +49,11 @@ public class TransporteService {
     // b) Horas pico: agrupar por hora del dia y contar el flujo
     public static Map<Integer, Long> flujoPorHora(List<Registro> registros) {
         Objects.requireNonNull(registros, "La lista de registros no puede ser nula");
+        
+        if (registros.isEmpty()) {
+            return Map.of();
+        }
+        
         return registros.stream()
                 .collect(Collectors.groupingBy(r -> r.getTimestamp().getHour(),
                         Collectors.counting()));
@@ -56,6 +74,11 @@ public class TransporteService {
     // c) Rutas mas utilizadas: contar registros por ruta
     public static Map<String, Long> usoPorRuta(List<Registro> registros) {
         Objects.requireNonNull(registros, "La lista de registros no puede ser nula");
+        
+        if (registros.isEmpty()) {
+            return Map.of();
+        }
+        
         return registros.stream()
                 .collect(Collectors.groupingBy(Registro::getRuta, Collectors.counting()));
     }
@@ -74,6 +97,11 @@ public class TransporteService {
     // d) Patrones de viaje: para cada usuario, lista de estaciones en orden de aparicion
     public static Map<Integer, List<String>> patronesPorUsuario(List<Registro> registros) {
         Objects.requireNonNull(registros, "La lista de registros no puede ser nula");
+        
+        if (registros.isEmpty()) {
+            return Map.of();
+        }
+        
         return registros.stream()
                 .collect(Collectors.groupingBy(Registro::getIdUsuario,
                         Collectors.mapping(Registro::getEstacion,
