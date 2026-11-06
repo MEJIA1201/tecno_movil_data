@@ -21,7 +21,11 @@ public class TecnoMovilData {
     // ------------------------------------------------------------------
     // 3.1 Estructura de datos a procesar
     // ------------------------------------------------------------------
-    // La clase es inmutable: todos los atributos son final y no hay setters.
+    /**
+     * Clase Registro: representa un evento de entrada o salida en el sistema de transporte.
+     * La clase es inmutable: todos los atributos son final y no hay setters.
+     * Esto garantiza seguridad en entornos concurrentes y facilita el uso con streams.
+     */
     static final class Registro {
         private final int idUsuario;
         private final String ruta;
@@ -183,51 +187,71 @@ public class TecnoMovilData {
     }
 
     // ------------------------------------------------------------------
-    // Programa principal: genera datos y muestra los resultados
+    // Programa principal: genera datos y muestra los resultros
     // ------------------------------------------------------------------
     public static void main(String[] args) {
+        System.out.println("=".repeat(70));
+        System.out.println("    SISTEMA DE ANALISIS - TECNO MOVIL DATA");
+        System.out.println("=".repeat(70));
+        
         List<Registro> registros = generarDatos(2000); // 20.000 registros simulados
-        System.out.println("Registros simulados: " + registros.size());
-        System.out.println("Ejemplo: " + registros.get(0));
+        System.out.println("\nRegistros simulados: " + registros.size());
+        System.out.println("Ejemplo de registro: " + registros.get(0));
 
         // a)
-        System.out.println("\n--- a) Afluencia por estacion (entradas) ---");
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("--- a) AFLUENCIA POR ESTACION (entradas) ---");
+        System.out.println("=".repeat(70));
         afluenciaPorEstacion(registros).entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-                .forEach(e -> System.out.println(e.getKey() + ": " + e.getValue()));
+                .forEach(e -> System.out.printf("  %-20s: %,d usuarios%n", e.getKey(), e.getValue()));
 
         // Comprobacion de que el resultado paralelo es igual al secuencial
         boolean iguales = afluenciaPorEstacion(registros)
                 .equals(afluenciaPorEstacionParalelo(registros));
-        System.out.println("Secuencial == Paralelo ? " + iguales);
+        System.out.println("\n  ✓ Verificacion: Secuencial == Paralelo ? " + iguales);
 
         // b)
-        System.out.println("\n--- b) Horas pico (top 3) ---");
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("--- b) HORAS PICO (top 3) ---");
+        System.out.println("=".repeat(70));
         horasPico(flujoPorHora(registros), 3)
-                .forEach(e -> System.out.println(e.getKey() + ":00 -> " + e.getValue() + " registros"));
+                .forEach(e -> System.out.printf("  %02d:00 horas -> %,d registros%n", e.getKey(), e.getValue()));
 
         // c)
-        System.out.println("\n--- c) Rutas mas utilizadas ---");
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("--- c) RUTAS MAS UTILIZADAS ---");
+        System.out.println("=".repeat(70));
         rutasMasUsadas(usoPorRuta(registros))
-                .forEach(e -> System.out.println(e.getKey() + ": " + e.getValue()));
+                .forEach(e -> System.out.printf("  Ruta %-5s: %,d registros%n", e.getKey(), e.getValue()));
 
         // d)
-        System.out.println("\n--- d) Patron de viaje (usuarios 1 a 3) ---");
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("--- d) PATRON DE VIAJE (usuarios 1 a 3) ---");
+        System.out.println("=".repeat(70));
         Map<Integer, List<String>> patrones = patronesPorUsuario(registros);
         Stream.of(1, 2, 3)
-                .forEach(id -> System.out.println("Usuario " + id + ": " + patrones.get(id)));
+                .forEach(id -> System.out.println("  Usuario " + id + ": " + patrones.get(id)));
 
         // e)
-        System.out.println("\n--- e) Tiempo promedio entre estaciones (5 primeras, A -> B) ---");
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("--- e) TIEMPO PROMEDIO ENTRE ESTACIONES (primeros 5 trayectos) ---");
+        System.out.println("=".repeat(70));
         tiempoPromedioEntreEstaciones(registros).entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .limit(5)
-                .forEach(e -> System.out.printf("%s: %.1f min%n", e.getKey(), e.getValue()));
+                .forEach(e -> System.out.printf("  %-35s: %6.1f min%n", e.getKey(), e.getValue()));
 
         // f)
-        System.out.println("\n--- f) Estado de las rutas (umbral = " + UMBRAL_OCUPACION + ") ---");
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("--- f) ESTADO DE LAS RUTAS (umbral = " + UMBRAL_OCUPACION + " entradas) ---");
+        System.out.println("=".repeat(70));
         estadoPorRuta(registros, UMBRAL_OCUPACION).entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
-                .forEach(e -> System.out.println(e.getKey() + ": " + e.getValue()));
+                .forEach(e -> System.out.println("  " + e.getKey() + ": " + e.getValue()));
+        
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("    FIN DEL ANALISIS");
+        System.out.println("=".repeat(70));
     }
 }
